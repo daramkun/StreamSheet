@@ -7,11 +7,12 @@ namespace Hazelnut.StreamSheet;
 public sealed class CsvSheetReader : BaseTextSheetReader
 {
     private readonly CsvSheetReaderOptions _options;
-    private string[]? _header;
+    private Cell[]? _header;
     private int _columnCount = -1;
+    private int _rowCount = 1;
 
     private readonly StringBuilder _builder = new();
-    private readonly List<string> _record = new();
+    private readonly List<Cell> _record = [];
 
     public CsvSheetReaderOptions Options => _options;
 
@@ -37,13 +38,13 @@ public sealed class CsvSheetReader : BaseTextSheetReader
         _header = Read();
     }
 
-    public override string[]? GetHeader()
+    public override Cell[]? GetHeader()
     {
         AssertDisposed();
         return _header;
     }
 
-    public override string[]? Read()
+    public override Cell[]? Read()
     {
         AssertDisposed();
         
@@ -144,9 +145,11 @@ public sealed class CsvSheetReader : BaseTextSheetReader
                     }
                 }
 
-                _record.Add(_builder.Length > 0
+                var cellText = _builder.Length > 0
                     ? _builder.ToString()
-                    : string.Empty);
+                    : string.Empty;
+                var cell = new Cell(_record.Count + 1, _rowCount, cellText);
+                _record.Add(cell);
 
                 _builder.Clear();
 
@@ -157,7 +160,7 @@ public sealed class CsvSheetReader : BaseTextSheetReader
             }
         }
 
-        if (_record.Count == 0 || (_record.Count == 1 && string.IsNullOrEmpty(_record[0])))
+        if (_record.Count == 0 || (_record.Count == 1 && string.IsNullOrEmpty(_record[0].Value as string)))
             return null;
 
         if (_options.SameColumnCount && _columnCount != -1)
@@ -167,6 +170,7 @@ public sealed class CsvSheetReader : BaseTextSheetReader
         }
 
         _columnCount = _record.Count;
+        ++_rowCount;
         
         return _record.ToArray();
     }

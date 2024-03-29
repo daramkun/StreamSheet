@@ -15,9 +15,11 @@ public class OdsSheetReader : BaseSheetReader
     private readonly int _sheetIndex;
     private readonly OdsSheetReaderOptions _options;
 
-    private string[]? _header;
+    private Cell[]? _header;
 
-    private readonly List<string> _record = new();
+    private readonly List<Cell?> _record = [];
+    private readonly List<(int, int)> _reservedRows = [];
+    private int _rowIndex = 1;
     
     public OdsSheetReader(Stream? stream, int sheetIndex = 0, in OdsSheetReaderOptions options = default, bool leaveOpen = false)
         : base(stream, leaveOpen)
@@ -50,9 +52,9 @@ public class OdsSheetReader : BaseSheetReader
         _header = Read();
     }
 
-    public override string[]? GetHeader() => _header;
+    public override Cell[]? GetHeader() => _header;
 
-    public override string[]? Read()
+    public override Cell[]? Read()
     {
         if (_zipArchive == null)
             throw new InvalidOperationException("ZIP Archive is null.");
@@ -133,28 +135,57 @@ public class OdsSheetReader : BaseSheetReader
                 var xmlRowReader = _xmlTableReader.ReadSubtree();
                 while (xmlRowReader.Read())
                 {
-                    if (xmlRowReader is { NodeType: XmlNodeType.EndElement, LocalName: "table-row" })
-                        return _record.ToArray();
+                    while (_reservedRows.Contains((_record.Count + 1, _rowIndex)))
+                        _record.Add(null);
                     
-                    if (xmlRowReader is { NodeType: XmlNodeType.Element, LocalName: "covered-table-cell" })
-                        _record.Add(string.Empty);
-                    else if (xmlRowReader is { NodeType: XmlNodeType.Element, LocalName: "table-cell" })
+                    if (xmlRowReader is { NodeType: XmlNodeType.EndElement, LocalName: "table-row" })
                     {
+                        ++_rowIndex;
+                        return _record.Where(r => r != null).Cast<Cell>().ToArray();
+                    }
+
+                    if (xmlRowReader is { NodeType: XmlNodeType.Element, LocalName: "covered-table-cell" })
+                        continue;
+                    
+                    if (xmlRowReader is { NodeType: XmlNodeType.Element, LocalName: "table-cell" })
+                    {
+                        var columnSpanText = xmlRowReader.GetAttribute("table:number-columns-spanned");
+                        var rowSpanText = xmlRowReader.GetAttribute("table:number-rows-spanned");
+
+                        var columnSpan = columnSpanText != null && int.TryParse(columnSpanText, out var cp) ? cp : 1;
+                        var rowSpan = rowSpanText != null && int.TryParse(rowSpanText, out var rp) ? rp : 1;
+                        
                         var formula = _xmlTableReader.GetAttribute("table:formula");
                         if (formula != null)
                         {
-                            _record.Add(formula);
+                            _record.Add(new Cell(_record.Count + 1, _rowIndex, formula, columnSpan, rowSpan));
                         }
                         else
                         {
+                            var found = false;
                             var p = _xmlTableReader.ReadSubtree();
                             while (p.Read())
                             {
                                 if (p is { NodeType: XmlNodeType.Element, LocalName: "p"})
                                 {
-                                    _record.Add(p.ReadElementString());
+                                    _record.Add(new Cell(_record.Count + 1, _rowIndex, p.ReadElementString(), columnSpan, rowSpan));
+                                    found = true;
                                     break;
                                 }
+                            }
+                            
+                            if (!found)
+                                _record.Add(new Cell(_record.Count + 1, _rowIndex, string.Empty, columnSpan, rowSpan));
+                        }
+
+                        for (var y = 0; y < rowSpan; ++y)
+                        {
+                            for (var x = 1; x < columnSpan; ++x)
+                            {
+                                if (y == 0)
+                                    _record.Add(null);
+                                else
+                                    _reservedRows.Add((_record.Count, _rowIndex + y + 1));
                             }
                         }
                     }
@@ -163,7 +194,7 @@ public class OdsSheetReader : BaseSheetReader
         }
 
         if (_record.Count > 0)
-            return _record.ToArray();
+            return _record.Where(r => r != null).Cast<Cell>().ToArray();
 
         return null;
     }

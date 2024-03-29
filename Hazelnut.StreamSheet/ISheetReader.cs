@@ -4,10 +4,10 @@ public interface ISheetReader : IDisposable
 {
     Stream? BaseStream { get; }
 
-    string[]? GetHeader();
+    Cell[]? GetHeader();
 
-    string[]? Read();
-    IEnumerable<string[]> ReadAsEnumerable();
+    Cell[]? Read();
+    IEnumerable<Cell[]> ReadAsEnumerable();
 }
 
 public interface ITextSheetReader : ISheetReader
@@ -58,11 +58,11 @@ public abstract class BaseSheetReader : ISheetReader
             throw new ObjectDisposedException(GetType().Name);
     }
     
-    public abstract string[]? GetHeader();
+    public abstract Cell[]? GetHeader();
 
-    public abstract string[]? Read();
+    public abstract Cell[]? Read();
 
-    public virtual IEnumerable<string[]> ReadAsEnumerable()
+    public virtual IEnumerable<Cell[]> ReadAsEnumerable()
     {
         while (Read() is { } read)
             yield return read;

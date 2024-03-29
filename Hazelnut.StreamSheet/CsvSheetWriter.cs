@@ -23,7 +23,7 @@ public class CsvSheetWriter : BaseTextSheetWriter
         _options = options;
     }
 
-    public override void Write(IEnumerable<string> columns)
+    public override void Write(IEnumerable<Cell> columns)
     {
         if (BaseWriter == null)
             return;
@@ -37,18 +37,19 @@ public class CsvSheetWriter : BaseTextSheetWriter
             if (count != 0)
                 _builder.Append(_options.ColumnDelimiter);
 
-            if (!string.IsNullOrEmpty(column))
+            var columnValue = column.ToString();
+            if (!string.IsNullOrEmpty(columnValue))
             {
-                if (!_options.QuoteBindable && column.Contains(_options.ColumnDelimiter))
+                if (!_options.QuoteBindable && columnValue.Contains(_options.ColumnDelimiter))
                     throw new ArgumentOutOfRangeException(nameof(columns), "Column value contains column delimiter but Quote for value binding is not disabled.");
-                if (!_options.QuoteBindable && column.Contains(_options.RecordDelimiter))
+                if (!_options.QuoteBindable && columnValue.Contains(_options.RecordDelimiter))
                     throw new ArgumentOutOfRangeException(nameof(columns), "Column value contains record delimiter but Quote for value binding is not disabled.");
 
                 if (_options.QuoteBindable &&
-                    (column.Contains(_options.ColumnDelimiter) || column.Contains(_options.RecordDelimiter) || column.Contains('"')))
+                    (columnValue.Contains(_options.ColumnDelimiter) || columnValue.Contains(_options.RecordDelimiter) || columnValue.Contains('"')))
                 {
                     _builder.Append('"');
-                    foreach (var ch in column)
+                    foreach (var ch in columnValue)
                     {
                         if (ch == '"')
                         {

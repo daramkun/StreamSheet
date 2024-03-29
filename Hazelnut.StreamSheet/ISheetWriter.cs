@@ -4,7 +4,7 @@ public interface ISheetWriter : IDisposable
 {
     Stream? BaseStream { get; }
 
-    void Write(IEnumerable<string> columns);
+    void Write(IEnumerable<Cell> columns);
 }
 
 public interface ITextSheetWriter : IDisposable
@@ -58,7 +58,7 @@ public abstract class BaseSheetWriter : ISheetWriter
             throw new ObjectDisposedException(GetType().Name);
     }
 
-    public abstract void Write(IEnumerable<string> columns);
+    public abstract void Write(IEnumerable<Cell> columns);
 }
 
 public abstract class BaseTextSheetWriter : BaseSheetWriter, ITextSheetWriter
