@@ -1,6 +1,6 @@
 ﻿namespace Hazelnut.StreamSheet;
 
-public struct CsvSheetWriterOptions(
+public readonly struct CsvSheetWriterOptions(
     char columnDelimiter = ',',
     char recordDelimiter = '\n',
     bool quoteBindable = true,
