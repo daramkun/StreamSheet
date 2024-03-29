@@ -6,23 +6,23 @@ namespace Hazelnut.StreamSheet;
 [RequiresDynamicCode("RFC4180 Comma-separated value Format Reader")]
 public sealed class CsvSheetReader : BaseTextSheetReader
 {
-    private readonly CsvReaderOptions _options;
+    private readonly CsvSheetReaderOptions _options;
     private string[]? _header;
     private int _columnCount = -1;
 
     private readonly StringBuilder _builder = new();
     private readonly List<string> _record = new();
 
-    public CsvReaderOptions Options => _options;
+    public CsvSheetReaderOptions Options => _options;
 
-    public CsvSheetReader(Stream stream, in CsvReaderOptions options = default, bool leaveOpen = false)
+    public CsvSheetReader(Stream stream, in CsvSheetReaderOptions options = default, bool leaveOpen = false)
         : base(stream, leaveOpen)
     {
         _options = options;
         ReadHeader();
     }
 
-    public CsvSheetReader(TextReader reader, in CsvReaderOptions options = default, bool leaveOpen = false)
+    public CsvSheetReader(TextReader reader, in CsvSheetReaderOptions options = default, bool leaveOpen = false)
         : base(reader, leaveOpen)
     {
         _options = options;

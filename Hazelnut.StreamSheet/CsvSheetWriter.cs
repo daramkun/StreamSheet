@@ -4,19 +4,19 @@ namespace Hazelnut.StreamSheet;
 
 public class CsvSheetWriter : BaseTextSheetWriter
 {
-    private readonly CsvWriterOptions _options;
+    private readonly CsvSheetWriterOptions _options;
     private int _columnCount = -1;
 
     private readonly StringBuilder _builder = new();
 
-    public CsvWriterOptions Options => _options;
+    public CsvSheetWriterOptions Options => _options;
     
-    public CsvSheetWriter(Stream stream, in CsvWriterOptions options = default, bool leaveOpen = false)
+    public CsvSheetWriter(Stream stream, in CsvSheetWriterOptions options = default, bool leaveOpen = false)
         : base(stream, leaveOpen)
     {
     }
 
-    public CsvSheetWriter(TextWriter writer, in CsvWriterOptions options = default, bool leaveOpen = false)
+    public CsvSheetWriter(TextWriter writer, in CsvSheetWriterOptions options = default, bool leaveOpen = false)
         : base(writer, leaveOpen)
     {
     }

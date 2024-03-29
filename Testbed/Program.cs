@@ -3,7 +3,7 @@
 using Hazelnut.StreamSheet;
 
 using var stream = new FileStream("sample.csv", FileMode.Open, FileAccess.Read);
-using var reader = new CsvSheetReader(stream, new CsvReaderOptions(headerExists: true));
+using var reader = new CsvSheetReader(stream, new CsvSheetReaderOptions(headerExists: true));
 
 foreach (var headerColumn in reader.GetHeader() ?? Array.Empty<string>())
 {
