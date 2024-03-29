@@ -14,11 +14,13 @@ public class CsvSheetWriter : BaseTextSheetWriter
     public CsvSheetWriter(Stream stream, in CsvSheetWriterOptions options = default, bool leaveOpen = false)
         : base(stream, leaveOpen)
     {
+        _options = options;
     }
 
     public CsvSheetWriter(TextWriter writer, in CsvSheetWriterOptions options = default, bool leaveOpen = false)
         : base(writer, leaveOpen)
     {
+        _options = options;
     }
 
     public override void Write(IEnumerable<string> columns)
